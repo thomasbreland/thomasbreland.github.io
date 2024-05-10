@@ -1,31 +1,128 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-  <meta charset="utf-8">
-  <title>thomasbreland.github.io | Under Construction</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>thomasbreland.github.io</title>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "vue": "https://unpkg.com/vue@3.4.26/dist/vue.esm-browser.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import { createApp, ref, onBeforeMount, onMounted } from 'vue';
+    const API_URL = `https://api.github.com/users/thomasbreland/repos`
+    
+    createApp({
+      setup() {
+        const repos = ref(null)
+
+        const fetchData = async () => {
+          try {
+            const response = await (await fetch(API_URL)).json();
+            repos.value = response.filter(repo => !repo.fork);
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+        
+        onBeforeMount(fetchData);
+        onMounted(() => {
+          const element = document.querySelector('.hide-until-rendered');
+          if (element) {
+            element.classList.remove('hide-until-rendered');
+        }
+        });
+
+        return {
+          repos
+        }
+      }
+    }).mount('#app')
+  </script>
+
+  <style>
+    .hide-until-rendered {
+      display: none !important;
+    }
+    body {
+      background-color: #222;
+      color: #ddd;
+      display: grid;
+      font-family: 'Courier New', Courier, monospace;
+      place-items: center;
+    }
+    a {
+      color: #ddd;
+    }
+    #intro {
+      margin: 0 .5rem;
+    }
+    #content {
+      margin: auto;
+      width: 90vw;
+    }
+    #content header {
+      margin: 0 1rem;
+    }
+    #projects {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: center;
+    }
+    #projects > article {
+      margin: 0 .5rem 1rem .5rem;
+      padding: .5rem;
+      border: 2px solid #111;
+      border-radius: 10px;
+      flex-basis: 18rem;
+      flex-grow: 0;
+      flex-shrink: 0;
+      background-color: #282828;
+    }
+    @media (min-width: 480px) {
+      #content {
+        width: 80vw;
+      }
+    }
+    @media (min-width: 1280px) {
+      #content {
+        width: 70vw;
+      }
+    }
+    @media (min-width: 1920px) {
+      #content {
+        width: 50vw;
+      }
+    }
+    li {
+      overflow-wrap: break-word;
+    }
+  </style>
 </head>
 <body id="breland-tech">
-  <div id="intro">
-    <h1>Thomas Phillip Breland</h1>
-    <p>I like code.</p>
-  </div>
-  <div id="content">
-    <p>This is where I would showcase my repositories, if I had any.</p>
-  </div>
-  <div id="promotion">
-    <ul>
-      <li>
-        <a class="github" target="_blank" href="https://github.com/thomasbreland" title="My GitHub">
-          <span>My GitHub</span>
-        </a>
-      </li>
-      <li>
-        <a class="linkedin" target="_blank" href="https://www.linkedin.com/in/thomasbreland" title="My LinkedIn">
-          <span>My LinkedIn</span>
-        </a>
-      </li>
-    </ul>
-  </div>
+  <main>
+    <div id="app">
+      <header id="header">
+        <h1>Thomas Phillip Breland</h1>
+        <p>I like code.</p>
+      </header>
+      <section id="content">
+        <header><h2>My GitHub Projects</h2></header>
+        <div id="projects" class="hide-until-rendered">
+          <article v-for="(repo, index) in repos" :key="index">
+            <p>
+              <a rel="noopener" target="_blank" :href="repo.html_url" :title="repo.name"><span>{{ repo.name }}</span></a>
+              {{ repo.description }}
+            </p>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
 </body>
 </html>
