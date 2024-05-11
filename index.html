@@ -4,23 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>thomasbreland.github.io</title>
-
+  
   <script type="importmap">
     {
       "imports": {
-        "vue": "https://unpkg.com/vue@3.4.26/dist/vue.esm-browser.js"
+        "vue": "https://unpkg.com/vue@3.4.26/dist/vue.esm-browser.prod.js"
       }
     }
   </script>
-
+  
   <script type="module">
     import { createApp, ref, onBeforeMount, onMounted } from 'vue';
     const API_URL = `https://api.github.com/users/thomasbreland/repos`
     
     createApp({
       setup() {
+        const isVisible = ref(false)
         const repos = ref(null)
-
+        
         const fetchData = async () => {
           try {
             const response = await (await fetch(API_URL)).json();
@@ -32,22 +33,30 @@
         
         onBeforeMount(fetchData);
         onMounted(() => {
-          const element = document.querySelector('.hide-until-rendered');
-          if (element) {
+          const elements = document.querySelectorAll('.hide-until-rendered');
+          elements.forEach(element => {
             element.classList.remove('hide-until-rendered');
-        }
+          });
+          isVisible.value = true;
         });
-
+        
         return {
-          repos
+          repos,
+          isVisible
         }
       }
     }).mount('#app')
   </script>
-
+  
   <style>
     .hide-until-rendered {
       display: none !important;
+    }
+    .fade-enter-active, .fade-leave-active {
+      transition: opacity 1s ease;
+    }
+    .fade-enter-from, .fade-leave-to {
+      opacity: 0;
     }
     body {
       background-color: #222;
@@ -77,12 +86,13 @@
     #projects > article {
       margin: 0 .5rem 1rem .5rem;
       padding: .5rem;
-      border: 2px solid #111;
+      border: 2px solid #181818;
       border-radius: 10px;
       flex-basis: 18rem;
       flex-grow: 0;
       flex-shrink: 0;
       background-color: #282828;
+      box-shadow: 0.2rem 0.2rem 0.4rem rgba(0, 0, 0, 0.5);
     }
     @media (min-width: 480px) {
       #content {
@@ -112,15 +122,19 @@
         <p>I like code.</p>
       </header>
       <section id="content">
-        <header><h2>My GitHub Projects</h2></header>
-        <div id="projects" class="hide-until-rendered">
-          <article v-for="(repo, index) in repos" :key="index">
-            <p>
-              <a rel="noopener" target="_blank" :href="repo.html_url" :title="repo.name"><span>{{ repo.name }}</span></a>
-              {{ repo.description }}
-            </p>
-          </article>
-        </div>
+        <transition name="fade">
+          <div v-show="isVisible" class="hide-until-rendered">
+            <header><h2>My GitHub Projects</h2></header>
+            <div id="projects">
+              <article v-for="(repo, index) in repos" :key="index">
+                <p>
+                  <a rel="noopener" target="_blank" :href="repo.html_url" :title="repo.name"><span>{{ repo.name }}</span></a>
+                  {{ repo.description }}
+                </p>
+              </article>
+            </div>
+          </div>
+        </transition>
       </section>
     </div>
   </main>
