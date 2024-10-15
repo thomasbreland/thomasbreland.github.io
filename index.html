@@ -36,7 +36,8 @@
         const fetchData = async () => {
           try {
             const response = await (await fetch(API_URL)).json();
-            repos.value = response.filter(repo => !repo.fork && repo.name !== 'thomasbreland');
+            repos.value = response.filter(repo => !repo.fork && repo.name !== repo.owner.login) // filter out forked repos and user readme
+              .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at)); // sort by most recently pushed to
             await fetch('https://raw.githubusercontent.com/thomasbreland/thomasbreland/master/README.md')
             .then(res => res.text())
             .then(data => readme.value = marked(data, renderer.value));
@@ -151,7 +152,7 @@
                 {{ repo.description }}
               </p>
               <span v-if="repo.homepage && repo.homepage.length">
-                🔗 <a rel="noopener" target="_blank" :href="repo.homepage" :title="repo.homepage">View in Browser!</a>
+                🔗 <a rel="noopener" target="_blank" :href="repo.homepage" :title="repo.homepage">Project Site</a>
               </span>
             </article>
           </div>
